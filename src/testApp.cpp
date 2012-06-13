@@ -125,9 +125,12 @@ void testApp::exit(){
 //--------------------------------------------------------------
 void testApp::update(){
     // cycles through the original volume and uploads one slice at a time to the GPU
-    // tests how fast this function is on your GFX card
+    // this is just to test how fast this function is on your GFX card, it has no visual impact!
     if(animate) {
         glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, zTexOffset, texWidth,texHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE, tex3d + (zTexOffset * texWidth * texHeight * 4));
+        
+        // note that we are moving the 3d texture inside the fragment shader (with zOffset)
+        // this works because of the GL_TEXTURE_WRAP being set to repeat; we're actually just sliding the 3d texture out of the cube
         zTexOffset = (zTexOffset + 1) % texDepth;
     }
 

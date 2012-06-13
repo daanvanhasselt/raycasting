@@ -1,17 +1,17 @@
 <Widget>
     <Kind>4</Kind>
     <Name>quality</Name>
-    <Value>0.303333</Value>
+    <Value>0.26</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>density</Name>
-    <Value>0.0186667</Value>
+    <Value>0.109333</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>threshold</Name>
-    <Value>0.306667</Value>
+    <Value>0.13</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
