@@ -26,7 +26,7 @@ void testApp::setup(){
     
     gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, quality, "quality"));
     gui->addWidgetDown(new ofxUISpacer(0, spacerHeight));
-    gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, density, "density"));
+    gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 0.2, density, "density"));
     gui->addWidgetDown(new ofxUISpacer(0, spacerHeight));
     gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, threshold, "threshold"));
     gui->addWidgetDown(new ofxUISpacer(0, spacerHeight * 2.0));
@@ -140,19 +140,20 @@ void testApp::draw(){
     
     float size = renderHeight;
     float angle = sin(ofGetFrameNum()*0.001)*360.0f;
+    int zTranslation = -275;
     
     // render the backface
     backfaceRender.begin();
     ofClear(0);
         glPushMatrix();
-        glTranslatef(renderWidth/2, renderHeight/2, -100);
+        glTranslatef(renderWidth/2, renderHeight/2, zTranslation);
         glRotatef(angle,0.3,1,0.6);
         glTranslatef(-size/2,-size/2, -size/2);
         glScalef(size,size,size);
         glActiveTexture(GL_TEXTURE0);
         
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        glCullFace(GL_FRONT);
         drawQuads(0.99,0.99,0.99);
         glDisable(GL_CULL_FACE);
         glPopMatrix();
@@ -183,23 +184,21 @@ void testApp::draw(){
             shader.setUniform1f("threshold", threshold);
             
             glPushMatrix();
-            glTranslatef(renderWidth/2, renderHeight/2, -100);
+            glTranslatef(renderWidth/2, renderHeight/2, zTranslation);
             glRotatef(angle,0.3,1,0.6);
             glTranslatef(-size/2,-size/2, -size/2);
             glScalef(size,size,size);
             glActiveTexture(GL_TEXTURE0);
             
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_FRONT);
             drawQuads(0.99,0.99,0.99);
-            glDisable(GL_CULL_FACE);
             glPopMatrix();
 
         shader.end();    
     raycastRender.end();
     
     ofSetColor(255);
-    raycastRender.draw(275, 100, 512, 512);
+    float fboSize = ofGetHeight();
+    raycastRender.draw((ofGetWidth() - fboSize) / 2.0, (ofGetHeight() - fboSize) / 2.0, fboSize, fboSize);
 }
 
 //--------------------------------------------------------------

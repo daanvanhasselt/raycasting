@@ -21,7 +21,7 @@ void main()
     // pos.xy / w = [-1, 1]
     // + 1.0 / 2.0 = [0 , 1]
     // * backfaceDimensions = [0, backfaceDimensions]
-    
+//        gl_FragColor = vec4(back_position.rgb, 1.); return;
     vec3 dir = back_position.rgb - start;   // get the direction vector     (direction of the ray)
     float len = length(dir);                // and it's length              (lenght of the ray)
     float steps = len * length(volumeDimensions) * quality;    // get the number of steps: the lenght of the ray * the length of the volume dimensions * the 'quality'. the lower the quality, the lower the amount of steps
