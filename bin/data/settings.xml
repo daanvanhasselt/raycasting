@@ -1,17 +1,17 @@
 <Widget>
     <Kind>4</Kind>
     <Name>quality</Name>
-    <Value>0.323333</Value>
+    <Value>0.623333</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>density</Name>
-    <Value>0.0433333</Value>
+    <Value>0.3</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>threshold</Name>
-    <Value>0.703333</Value>
+    <Value>0</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
@@ -21,5 +21,5 @@
 <Widget>
     <Kind>2</Kind>
     <Name>antialias</Name>
-    <Value>1</Value>
+    <Value>0</Value>
 </Widget>

@@ -40,8 +40,14 @@ void testApp::setup(){
     
     // setup the shader and fbos
     shader.load("shaders/raycast");
-    backfaceRender.allocate(renderWidth, renderHeight, GL_RGBA);
-    raycastRender.allocate(renderWidth, renderHeight, GL_RGBA, antialias ? 8 : 0);
+    
+    ofFbo::Settings settings;
+    settings.width = renderWidth;
+    settings.height = renderHeight;
+    settings.internalformat = GL_RGBA;
+    backfaceRender.allocate(settings);
+    settings.numSamples = antialias ? 8 : 0;
+    raycastRender.allocate(settings);
     
     // generate some noise in our 3d texture
     tex3d = new unsigned char[texWidth * texHeight * texDepth * 4];
@@ -102,7 +108,12 @@ void testApp::guiEvent(ofxUIEventArgs &e){
     if(name == "antialias"){
         ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
         antialias = toggle->getValue();
-        raycastRender.allocate(renderWidth, renderHeight, GL_RGBA, antialias ? 8 : 0);
+        ofFbo::Settings settings;
+        settings.width = renderWidth;
+        settings.height = renderHeight;
+        settings.internalformat = GL_RGBA;
+        settings.numSamples = antialias ? 8 : 0;
+        raycastRender.allocate(settings);
     }
 }
 
@@ -147,7 +158,8 @@ void testApp::draw(){
         glPopMatrix();
     backfaceRender.end();
     
-//    backfaceRender.draw(0, 0);
+//    backfaceRender.draw(275, 100, 512, 512);
+//    return;
     
     // let's cast some rays
     raycastRender.begin();
@@ -171,7 +183,7 @@ void testApp::draw(){
             shader.setUniform1f("threshold", threshold);
             
             glPushMatrix();
-            glTranslatef(renderWidth/2, renderHeight/2, -250);
+            glTranslatef(renderWidth/2, renderHeight/2, -100);
             glRotatef(angle,0.3,1,0.6);
             glTranslatef(-size/2,-size/2, -size/2);
             glScalef(size,size,size);

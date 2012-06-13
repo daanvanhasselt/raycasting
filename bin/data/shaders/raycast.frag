@@ -23,22 +23,23 @@ void main()
     // * backfaceDimensions = [0, backfaceDimensions]
     
     vec3 dir = back_position.rgb - start;   // get the direction vector     (direction of the ray)
-    float len = length(dir.xyz);            // and it's length              (lenght of the ray)
+    float len = length(dir);                // and it's length              (lenght of the ray)
     float steps = len * length(volumeDimensions) * quality;    // get the number of steps: the lenght of the ray * the length of the volume dimensions * the 'quality'. the lower the quality, the lower the amount of steps
     float stepsize = len / steps;
     vec3 delta_dir = normalize(dir) * stepsize; // this will be added every step
-    float delta_dir_len = length(delta_dir);
-
+    
     vec3 vec = start;                       // current position
-    vec4 col_acc = vec4(0., 0., 0., 0.);    // current color
+    vec4 col_acc = vec4(0.);                // current color
     float alpha_acc = 0.;                   // current alpha
     float aScale =  density * (1.0/quality);
+    vec4 color_sample;
+    float alpha_sample;
 
     //raycast
     for(int i = 0; i < int(steps); i++) {
-        vec4 color_sample = texture3D(volumeTexture,vec + vec3(0.0, 0.0, zOffset / volumeDimensions.z));      // get a color sample of the 3d texture
+        color_sample = texture3D(volumeTexture,vec + vec3(0.0, 0.0, zOffset / volumeDimensions.z));      // get a color sample of the 3d texture
         if(color_sample.a > threshold) {                                                        // if it's alpha value is high enough
-            float alpha_sample = color_sample.a * aScale;                                       // scale the alpha (using density and quality)
+            alpha_sample = color_sample.a * aScale;                                       // scale the alpha (using density and quality)
             color_sample.a = 1.0;
             col_acc += (1.0 - alpha_acc) * color_sample * alpha_sample * 2.0;                   // add it to the current color
             alpha_acc += alpha_sample;                                                          // and to the current color
