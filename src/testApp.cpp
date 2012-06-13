@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
-//    ofSetVerticalSync(true);
+    ofSetVerticalSync(true);
     
     texWidth        = 256;
     texHeight       = 256;
@@ -14,10 +14,36 @@ void testApp::setup(){
     zTexOffset      = 0;
     animate         = false;
     
+    // setup a nice gui
+    int width = 300;
+    int sliderHeight = 40;
+    int buttonSize = 80;
+    int spacerHeight = 10;
+    
+    gui = new ofxUICanvas(0, 0, width + OFX_UI_GLOBAL_PADDING * 4.0, ofGetHeight());
+    gui->addWidgetDown(new ofxUILabel("VOLUMETRIC RENDERING", OFX_UI_FONT_LARGE));
+    gui->addWidgetDown(new ofxUISpacer(0, spacerHeight * 2.0));
+    
+    gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, quality, "quality"));
+    gui->addWidgetDown(new ofxUISpacer(0, spacerHeight));
+    gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, density, "density"));
+    gui->addWidgetDown(new ofxUISpacer(0, spacerHeight));
+    gui->addWidgetDown(new ofxUISlider(width, sliderHeight, 0, 1, threshold, "threshold"));
+    gui->addWidgetDown(new ofxUISpacer(0, spacerHeight * 2.0));
+    
+    gui->addWidgetDown(new ofxUIToggle(buttonSize, buttonSize, animate, "animate"));
+    gui->addWidgetRight(new ofxUIToggle(buttonSize, buttonSize, antialias, "antialias"));
+    
+    
+    ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
+    gui->loadSettings("settings.xml");
+    
+    // setup the shader and fbos
     shader.load("shaders/raycast");
     backfaceRender.allocate(renderWidth, renderHeight, GL_RGBA);
-    raycastRender.allocate(renderWidth, renderHeight, GL_RGBA);
+    raycastRender.allocate(renderWidth, renderHeight, GL_RGBA, antialias ? 8 : 0);
     
+    // generate some noise in our 3d texture
     tex3d = new unsigned char[texWidth * texHeight * texDepth * 4];
     for(int x=0; x<texWidth; x++) {
         for(int y=0; y<texHeight; y++) {
@@ -31,7 +57,7 @@ void testApp::setup(){
         }
     }
     
-    //setup 3d texture
+    // setup GL texture stuff for our 3d texture
     glGenTextures(1, &tex3dHandle);
     glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, tex3dHandle);
@@ -52,25 +78,55 @@ void testApp::setup(){
                  GL_RGBA,               // format
                  GL_UNSIGNED_BYTE,      // type
                  tex3d);                // data
+}
 
+//--------------------------------------------------------------
+void testApp::guiEvent(ofxUIEventArgs &e){
+    string name = e.widget->getName();
+    if(name == "quality"){
+        ofxUISlider *slider = (ofxUISlider *)e.widget;
+        quality = slider->getScaledValue();
+    }
+    if(name == "density"){
+        ofxUISlider *slider = (ofxUISlider *)e.widget;
+        density = slider->getScaledValue();
+    }
+    if(name == "threshold"){
+        ofxUISlider *slider = (ofxUISlider *)e.widget;
+        threshold = slider->getScaledValue();
+    }
+    if(name == "animate"){
+        ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
+        animate = toggle->getValue();
+    }
+    if(name == "antialias"){
+        ofxUIToggle *toggle = (ofxUIToggle *)e.widget;
+        antialias = toggle->getValue();
+        raycastRender.allocate(renderWidth, renderHeight, GL_RGBA, antialias ? 8 : 0);
+    }
+}
+
+//--------------------------------------------------------------
+void testApp::exit(){
+    gui->saveSettings("settings.xml");
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
     // cycles through the original volume and uploads one slice at a time to the GPU
-    // tests how fast this function is on your GFX card, press any key to turn on animation.
+    // tests how fast this function is on your GFX card
     if(animate) {
         glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, zTexOffset, texWidth,texHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE, tex3d + (zTexOffset * texWidth * texHeight * 4));
         zTexOffset = (zTexOffset + 1) % texDepth;
     }
-    
-    smoothedFPS = ofGetFrameRate() * 0.01 + smoothedFPS * 0.99;
-    ofSetWindowTitle(ofToString(smoothedFPS));
+
+    ofSetWindowTitle(ofToString(ofGetFrameRate()));
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
-
+    ofBackgroundGradient(ofColor(200), ofColor(20));
+    
     float size = renderHeight;
     float angle = sin(ofGetFrameNum()*0.001)*360.0f;
     
@@ -93,7 +149,7 @@ void testApp::draw(){
     
 //    backfaceRender.draw(0, 0);
     
-    // cast rays
+    // let's cast some rays
     raycastRender.begin();
     ofClear(0);
         shader.begin();
@@ -105,17 +161,17 @@ void testApp::draw(){
             glBindTexture(GL_TEXTURE_3D, tex3dHandle);
             
             // pass variables to the shader
-            shader.setUniform1i("backface", 0);         // bg tex reference
-            shader.setUniform1i("volume_tex", 1);       // volume tex reference
-            shader.setUniform3f("vol_d", (float)texWidth, (float)texHeight, float(texDepth));   // dimensions of volume tex
-            shader.setUniform2f("bg_d", (float)renderWidth, (float)renderHeight);               // dimensions of bg tex
-            shader.setUniform1f("zoffset", (float)zTexOffset);          // used for animation so that we dont have to upload the entire volume every time    
-            shader.setUniform1f("quality", 0.5f); // 0 ... 1
-            shader.setUniform1f("density", 0.01f); // 0 ... 1
-            shader.setUniform1f("threshold", 1.0f/255.0f);//(float)mouseX/(float)ofGetWidth());
+            shader.setUniform1i("backfaceTexture", 0);         // bg tex reference
+            shader.setUniform1i("volumeTexture", 1);       // volume tex reference
+            shader.setUniform3f("volumeDimensions", (float)texWidth, (float)texHeight, float(texDepth));   // dimensions of volume tex
+            shader.setUniform2f("backfaceDimensions", (float)renderWidth, (float)renderHeight);               // dimensions of bg tex
+            shader.setUniform1f("zOffset", (float)zTexOffset);          // used for animation so that we dont have to upload the entire volume every time    
+            shader.setUniform1f("quality", quality);
+            shader.setUniform1f("density", density);
+            shader.setUniform1f("threshold", threshold);
             
             glPushMatrix();
-            glTranslatef(renderWidth/2, renderHeight/2, -100);
+            glTranslatef(renderWidth/2, renderHeight/2, -250);
             glRotatef(angle,0.3,1,0.6);
             glTranslatef(-size/2,-size/2, -size/2);
             glScalef(size,size,size);
@@ -131,12 +187,7 @@ void testApp::draw(){
     raycastRender.end();
     
     ofSetColor(255);
-    raycastRender.draw(0, 0, 512, 512);
-}
-
-//--------------------------------------------------------------
-void testApp::keyPressed(int key){
-    animate = !animate;
+    raycastRender.draw(275, 100, 512, 512);
 }
 
 //--------------------------------------------------------------

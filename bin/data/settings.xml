@@ -1,0 +1,25 @@
+<Widget>
+    <Kind>4</Kind>
+    <Name>quality</Name>
+    <Value>0.323333</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>density</Name>
+    <Value>0.0433333</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>threshold</Name>
+    <Value>0.703333</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>animate</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>antialias</Name>
+    <Value>1</Value>
+</Widget>
